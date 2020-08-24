@@ -17,33 +17,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-const database = {
-  users: [
-    {
-      id: "123",
-      name: "John",
-      password: "cookies",
-      email: "john@gmail.com",
-      entries: 0,
-      joined: new Date(),
-    },
-    {
-      id: "1234",
-      name: "Sally",
-      password: "bananas",
-      email: "sally@gmail.com",
-      entries: 0,
-      joined: new Date(),
-    },
-  ],
-  login: [
-    {
-      id: '987',
-      hash: '',
-      email: "john@gmail.com"
-    }
-  ]
-};
 
 
 
@@ -59,76 +32,87 @@ app.get("/", (req, res) => {
 
 
 app.post("/signin", (req, res) => {
-  bcrypt.compare(
-    "apples",
-    "$2a$10$XlEmCMjGGWNH.vdyfKn3yumfrLifwoB69JgyRv34mo/CNYxLZJGKK",
-    function (err, res) {
-      // res == true
-      console.log("first Guess");
+  db.select('email', 'hash').from('login')
+  .where('email', '=', req.body.email)
+  .then(data => {
+    const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+    if (isValid){
+      return db.select('*').from('users')
+        .where('email', '=', req.body.email)
+        .then(user => {
+          res.json(user[0])
+        })
+        .catch(err => res.status(400).json('Unable to get user'))
+    }else{
+      res.status(400).json('wrong credentials');
     }
-  );
-  if (
-    req.body.email === database.users[0].email &&
-    req.body.password === database.users[0].password
-  ) {
-    res.json(database.users[0]);
-  } else {
-    res.status(400).json("Error Logging In");
-  }
+  })
+  .catch(err => res.status(400).json('wrong credentials'))
 });
 
 
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
-  bcrypt.hash(password, null, null, function (err, hash) {
-    console.log(hash);
-    // Store hash in your password DB.
-  });
+  const hash = bcrypt.hashSync(password);
 
-  db('users').returning('*').insert({
-    email: email,
-    name: name,
-    joined: new Date()
-  })
-    .then(user => {
-      console.log(user);
-      res.json(user[0]);
-    })
-    .catch(err => res.status(400).json('Unable to register'));
+  //Create a transaction whe you have to update more than one table at once.
+    db.transaction((trx) => {
+      trx
+        .insert({
+          hash: hash,
+          email: email,
+        })
+        .into("login")
+        .returning("email")
+        .then((loginEmail) => {
+          return trx("users")
+            .returning("*")
+            .insert({
+              email: loginEmail[0],
+              name: name,
+              joined: new Date(),
+            })
+            .then((user) => {
+              res.json(user[0]);
+            });
+        })
+        .then(trx.commit)
+        .catch(trx.rollback);
+    }).catch((err) => res.status(400).json("unable to register"));
+    
 });
 
 
 app.get("/profile/:id", (req, res) => {
   const { id } = req.params;
-  let found = false;
 
-  database.users.forEach((user) => {
-    if (user.id === id) {
-      found = true;
-      return res.json(user);
-    }
-  });
-
-  if (!found) {
-    res.status(400).json("User not found");
-  }
+  db.select('*').from('users').where({
+    id: id
+  })
+    .then(user => {
+      if(user.length){
+        res.json(user[0]);
+      }else{
+        res.status(400).json('Not Found')
+      }
+      
+    })
+    .catch(err => res.status(400).json('Error Getting User'));
 });
 
 app.put("/image", (req, res) => {
   const { id } = req.body;
-  let found = false;
 
-  database.users.forEach((user) => {
-    if (user.id === id) {
-      found = true;
-      user.entries++;
-      return res.json(user.entries);
-    }
-  });
-
-  if (!found) {
-    res.status(400).json("User not found");
-  }
+  db('users').where('id', '=', id).increment('entries', 1)
+    .returning('entries')
+    .then(entries => {
+      if(entries.length){
+         res.json(entries[0]);
+      }else{
+        res.status(400).json("Unable to get entries");
+      }
+    })
+    .catch(err => res.status(400).res.json('Unable to get entries'));
 });
 
 //BCrypt
