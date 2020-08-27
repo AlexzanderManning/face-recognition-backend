@@ -6,13 +6,13 @@ const express = require("express");
 const app = express();
 // const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
+
+//Heroku database url is an enviorment variable.
 const db = require("knex")({
   client: "pg",
   connection: {
-    host: "postgresql-shallow-84900",
-    user: "deontemanning",
-    password: "",
-    database: "face-recognition",
+    host: process.env.DATABASE_URL,
+    ssl: true
   },
 });
 
