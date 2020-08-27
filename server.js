@@ -19,20 +19,22 @@ const image = require("./controllers/image.js");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+//Allows data to be fetched.
 app.use(cors());
 
 
+//Environmental Varibles Example.
+//Can be set through bash with the command: PORT=xxxx nodemon || PORT=xxxx node server.js
+//Enviormental Variables can be used to set API keys, and to protect other sensitive data as well.
+const PORT = process.env.PORT;
 
-
-app.listen(3000, () => {
-  console.log("Server is running on port 3000.");
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
 });
-
 
 app.get("/", async (req, res) => {
   const data = await db.select('*').from('users');
   const users = await data.json();
-
   res.send(users);
 });
 
