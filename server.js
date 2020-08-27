@@ -26,6 +26,8 @@ app.use(cors());
 //Environmental Varibles Example.
 //Can be set through bash with the command: PORT=xxxx nodemon || PORT=xxxx node server.js
 //Enviormental Variables can be used to set API keys, and to protect other sensitive data as well.
+//Can be used to set databse URLs also.
+//Environmental variables are really importeant for secrets and things that should be dynamic like ports.
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
