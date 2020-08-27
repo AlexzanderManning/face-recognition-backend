@@ -34,11 +34,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
-app.get("/", async (req, res) => {
-  const data = await db.select('*').from('users');
-  const users = await data.json();
-  res.send(users);
-});
+app.get("/", async (req, res) => res.send(db.users));
 
 
 //Example of dependcy injection
