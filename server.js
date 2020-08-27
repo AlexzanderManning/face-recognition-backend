@@ -1,6 +1,10 @@
+//Removed Bcrypt from server.js signin.js and register.js
+
+//TODO -> add another hashing library.
+
 const express = require("express");
 const app = express();
-const bcrypt = require('bcrypt-nodejs');
+// const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const db = require("knex")({
   client: "pg",
@@ -38,16 +42,11 @@ app.get("/", async (req, res) => res.send(db.users));
 
 
 //Example of dependcy injection
-app.post("/signin", (req, res) => signIn.handleSignIn(req, res, bcrypt, db));
+app.post("/signin", (req, res) => signIn.handleSignIn(req, res, db));
 
-
-app.post("/register", (req, res) =>
-  register.handleRegister(req, res, bcrypt, db)
-);
-
+app.post("/register", (req, res) => register.handleRegister(req, res, db));
 
 app.get("/profile/:id", (req, res) => profile.handleProfile(req, res, db));
-
 
 app.put("/image", (req, res) => image.handleImage(req, res, db));
 

@@ -1,4 +1,4 @@
-const handleSignIn = (req, res, bcrypt, db) => {
+const handleSignIn = (req, res, db) => {
   const { email, password } = req.body;
   
   if (!email || !password) {
@@ -9,7 +9,11 @@ const handleSignIn = (req, res, bcrypt, db) => {
     .from("login")
     .where("email", "=", req.body.email)
     .then((data) => {
-      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      const isValid = false;
+      if (req.body.password === data[0].hash){
+        isValid = true;
+      }
+
       if (isValid) {
         return db
           .select("*")
