@@ -28,7 +28,7 @@ const handleRegister = (req, res, db) => {
       })
       .then(trx.commit)
       .catch(trx.rollback);
-  }).catch((err) => res.status(400).json("unable to register", err));
+  }).catch((err) => res.status(400).json(err));
 };
 
 module.exports = {
