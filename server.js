@@ -41,7 +41,9 @@ app.get("/", async (req, res) => res.send(db.users));
 app.post("/signin", (req, res) => signIn.handleSignIn(req, res, bcrypt, db));
 
 
-app.post('/register', (req, res) => register.handleRegister(req, res, bcrypt, db));
+app.post("/register", (req, res) =>
+  register.handleRegister(req, res, bcrypt, db)
+);
 
 
 app.get("/profile/:id", (req, res) => profile.handleProfile(req, res, db));
